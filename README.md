@@ -1,17 +1,23 @@
-# Prod-Only Event Triggering Example
-
+# Branch-specific event triggering example
 Demonstrates how to configure Outerbounds project flows to respond to external
-events and schedules, with **only the prod (main branch) version** reacting to
+events and schedules, with branch-specific behavior for events, 
+in this case **only the prod (main branch) version** reacting to
 external signals.
 
-## The Pattern
+## Quickstart instructions
+- Create a GitHub repository 
+- Create a GitHub Actions machine user in the Outerbounds UI named `prod-event-example-cicd` with info for your GitHub org
+- Push this repository to your fork/copy of this repository, you should then see a GitHub action and results of `obproject-deploy`
+- Continue [testing](./TESTING.md)
+
+## The pattern in context
 
 | Decorator | Branch behavior | Use when |
 |---|---|---|
 | `@schedule(cron=...)` | Each branch gets its own CronWorkflow (isolated, cleaned up on teardown) | You want periodic runs |
 | `@project_trigger(event=...)` | Sensor scoped to `prj.<project>.<branch>.<event>` — **prod-only by default** when external publishers target the main branch event | External systems should only trigger prod |
 | `@trigger_on_finish(flow=...)` | Already branch-scoped — works out of the box | Flow chaining within the same project |
-| `@trigger(event=...)` | **NOT** branch-scoped — all branches react to the same event | Avoid for prod-only use cases |
+| `@trigger(event=...)` | 🚨 **NOT** branch-scoped — all branches react to the same event | Avoid for branch-specific use cases |
 
 ## Flows
 
@@ -29,6 +35,7 @@ sensor listens for:
 
 ```
 prj.prod_event_example.main.external_signal
+prj.<project-name>.<branch-name>.<event-name>
 ```
 
 When deployed on a feature branch `feature/foo`, the sensor listens for:
@@ -61,15 +68,3 @@ ArgoEvent("prj.prod_event_example.main.external_signal").safe_publish(
     payload={"record_count": 100}
 )
 ```
-
-## CI/CD (GitHub Actions)
-
-The `.github/workflows/deploy.yml` deploys on push to main and on PRs:
-- **main branch** → creates prod workflow templates, CronWorkflows, and Sensors
-- **feature branches** (via PR) → creates isolated test deployments (own schedules, own sensors)
-- **branch teardown** (on merge/delete) → removes all branch-specific Argo resources
-
-### Prerequisites
-
-1. Create a GitHub Actions machine user in the Outerbounds UI named `prod-event-example-cicd`
-2. Ensure `id-token: write` permission is set (already in the workflow)
