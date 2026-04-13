@@ -4,6 +4,12 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
+  delete:
+    branches-ignore: [main]
+
+env:
+  GH_HEAD_REF: ${{ github.head_ref }}
+  GH_REF: ${{ github.ref_name }}
 
 permissions:
   id-token: write
@@ -11,6 +17,44 @@ permissions:
 
 jobs:
   deploy:
+    if: github.event_name != 'delete' && !(github.event_name == 'pull_request' && github.event.action == 'closed')
+    name: Deploy Project
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: pip install outerbounds ob-project-utils pyyaml
+
+    - name: Configure Outerbounds
+      run: |
+        PROJECT_NAME=$(yq .project obproject.toml)
+        PLATFORM=$(yq .platform obproject.toml)
+        CICD_USER="${PROJECT_NAME//_/-}-cicd"
+        outerbounds service-principal-configure \
+          --name $CICD_USER \
+          --deployment-domain $PLATFORM \
+          --perimeter default \
+          --github-actions
+
+    - name: Deploy Project
+      run: obproject-deploy
+      env:
+        PYTHONUNBUFFERED: "1"
+
+  teardown:
+    if: >
+      (github.event_name == 'delete') ||
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+    name: Teardown Branch
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -36,5 +80,10 @@ jobs:
           --perimeter default \
           --github-actions
 
-    - name: Deploy Project
-      run: obproject-deploy
+    - name: Teardown branch resources
+      run: |
+        BRANCH=${{ github.head_ref || github.event.ref }}
+        PROJECT=$(yq .project obproject.toml)
+        echo "Tearing down $PROJECT/$BRANCH"
+        outerbounds flowproject teardown-branch \
+          --id "$PROJECT/$BRANCH" --yes -o json
