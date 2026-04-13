@@ -116,8 +116,8 @@ from obproject.project_events import ProjectEvent
 ProjectEvent(
     "external_signal",
     project="prod_event_example",
-    branch="feature_test_isolation",
-).safe_publish(payload={"record_count": 999})
+    branch="feature_test",
+).publish(payload={"record_count": 999})
 ```
 
 ### Expected results
@@ -135,7 +135,7 @@ This confirms full bidirectional isolation.
 
 ```bash
 git checkout main
-obproject-deploy --teardown --branch feature/test-isolation
+outerbounds flowproject teardown-branch --id feature/test-isolation
 ```
 
 ### Verify cleanup
