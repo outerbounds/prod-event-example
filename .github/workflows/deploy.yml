@@ -2,7 +2,7 @@ name: Deploy Project
 on:
   push:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [closed]
     branches: [main]
   delete:
     branches-ignore: [main]
