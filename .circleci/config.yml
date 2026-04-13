@@ -1,0 +1,44 @@
+version: 2.1
+
+jobs:
+  deploy:
+    docker:
+      - image: python:3.11
+    steps:
+      - checkout
+
+      - run:
+          name: Install dependencies
+          command: |
+            python -m pip install -U pip
+            python -m pip install -U outerbounds ob-project-utils
+
+      - run:
+          name: Configure Outerbounds
+          command: |
+            PLATFORM=$(python -c "import tomllib; print(tomllib.load(open('obproject.toml', 'rb'))['platform'])")
+            CICD_USER=$(python -c "import tomllib; c=tomllib.load(open('obproject.toml', 'rb')); print(c.get('cicd_user', c['project'] + '-cicd'))")
+
+            outerbounds service-principal-configure \
+              --name $CICD_USER \
+              --deployment-domain $PLATFORM \
+              --perimeter default \
+              --jwt-token $CIRCLE_OIDC_TOKEN_V2
+
+      - run:
+          name: Deploy Project
+          command: obproject-deploy
+          environment:
+            PYTHONUNBUFFERED: "1"
+
+      - store_artifacts:
+          path: deployment_summary.md
+          destination: deployment-summary
+
+workflows:
+  deploy-project:
+    jobs:
+      - deploy:
+          # CircleCI context is required for OIDC token availability
+          context:
+            - outerbounds

@@ -1,0 +1,6 @@
+platform = "dev-yellow.outerbounds.xyz"
+project = "prod_event_example"
+title = "Prod-Only Event Triggering Example"
+
+[dev-assets]
+branch = "main"
