@@ -1,0 +1,40 @@
+name: Deploy Project
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: pip install outerbounds ob-project-utils pyyaml
+
+    - name: Configure Outerbounds
+      run: |
+        PROJECT_NAME=$(yq .project obproject.toml)
+        PLATFORM=$(yq .platform obproject.toml)
+        CICD_USER="${PROJECT_NAME//_/-}-cicd"
+        outerbounds service-principal-configure \
+          --name $CICD_USER \
+          --deployment-domain $PLATFORM \
+          --perimeter default \
+          --github-actions
+
+    - name: Deploy Project
+      run: obproject-deploy

@@ -154,5 +154,5 @@ obproject-deploy --teardown --branch feature/test-isolation
 2. **`@trigger_on_finish`** is automatically branch-scoped — no configuration needed.
 3. **`@schedule`** creates per-branch CronWorkflows that are isolated and cleaned up
    on teardown.
-4. **CircleCI** deploys both prod and feature branches; branch isolation is handled
+4. **GitHub Actions** deploys both prod and feature branches; branch isolation is handled
    by the Outerbounds platform, not CI/CD logic.

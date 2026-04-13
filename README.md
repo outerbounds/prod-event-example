@@ -62,14 +62,14 @@ ArgoEvent("prj.prod_event_example.main.external_signal").safe_publish(
 )
 ```
 
-## CI/CD (CircleCI)
+## CI/CD (GitHub Actions)
 
-The `.circleci/config.yml` deploys on every push:
+The `.github/workflows/deploy.yml` deploys on push to main and on PRs:
 - **main branch** → creates prod workflow templates, CronWorkflows, and Sensors
-- **feature branches** → creates isolated test deployments (own schedules, own sensors)
+- **feature branches** (via PR) → creates isolated test deployments (own schedules, own sensors)
 - **branch teardown** (on merge/delete) → removes all branch-specific Argo resources
 
 ### Prerequisites
 
-1. Create a CircleCI machine user in the Outerbounds UI named `prod_event_example-cicd`
-2. Create a CircleCI context named `outerbounds` (required for OIDC token)
+1. Create a GitHub Actions machine user in the Outerbounds UI named `prod-event-example-cicd`
+2. Ensure `id-token: write` permission is set (already in the workflow)
