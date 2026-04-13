@@ -24,7 +24,7 @@ flows/
 
 ### How external events target only prod
 
-When `obproject-deploy` runs on `main`, the `@project_trigger(event="external_signal")`
+When `obproject-deploy` runs on `main` code branch (and translated to `prod` in the Metaflow namespace), the `@project_trigger(event="external_signal")`
 sensor listens for:
 
 ```

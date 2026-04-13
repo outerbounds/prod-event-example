@@ -27,7 +27,7 @@ python flows/event_processor/flow.py run
 
 ---
 
-## Phase 2: Deploy to dev-yellow (main branch)
+## Phase 2: Deploy (main branch)
 
 ```bash
 # From the prod-event-example directory, on main branch
@@ -36,18 +36,13 @@ obproject-deploy
 
 ### Verify Argo resources created
 
-After deploy, check the deployment summary or Argo UI for:
+After deploy, check the UI for:
 
 | Resource | Flow | Type |
 |---|---|---|
 | CronWorkflow | `ScheduledIngestFlow` | `prod_event_example.prod.scheduledingestflow` |
 | Sensor | `EventProcessorFlow` | listens on `prj.prod_event_example.main.external_signal` |
 | Sensor | `ChainedReporterFlow` | listens on `EventProcessorFlow` finish (same branch) |
-
-```bash
-# Confirm workflow templates exist
-outerbounds flowproject inspect --project prod_event_example
-```
 
 ---
 
