@@ -7,6 +7,10 @@ on:
   delete:
     branches-ignore: [main]
 
+env:
+  GH_HEAD_REF: ${{ github.head_ref }}
+  GH_REF: ${{ github.ref_name }}
+
 permissions:
   id-token: write
   contents: read
@@ -19,7 +23,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
 
     - name: Set up Python
